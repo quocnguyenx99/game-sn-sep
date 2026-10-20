@@ -5,3 +5,6 @@ dist
 
 # ảnh nháp Codex tạo ra (chỉ commit ảnh đã chọn trong src/assets)
 asset-candidates/
+
+# bộ logo đầy đủ (giữ trên máy, không đưa lên git)
+brand/
