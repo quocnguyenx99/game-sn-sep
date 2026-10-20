@@ -36,6 +36,11 @@ body,
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
   user-select: none;
+  /* điện thoại: không zoom khi chạm đúp, không kéo-để-tải-lại, không nháy xanh khi chạm */
+  touch-action: manipulation;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
 }
 
 button {

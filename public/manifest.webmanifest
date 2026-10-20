@@ -1,0 +1,16 @@
+{
+  "name": "Hành trình quay về tuổi thơ",
+  "short_name": "Tuổi thơ",
+  "description": "Cờ caro và Ô ăn quan cùng mèo NKC — trò chơi tuổi thơ cho 2 người.",
+  "lang": "vi",
+  "start_url": "/",
+  "scope": "/",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#1a1430",
+  "theme_color": "#1E4FD8",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

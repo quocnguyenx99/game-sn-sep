@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { memo } from 'react';
+import { memo, useRef } from 'react';
 import { img } from '../../assets/registry';
 import { IconArrow } from '../../ui/Icons';
 import { audio } from '../../audio/engine';
@@ -104,12 +104,13 @@ interface Props {
   floaters: Floater[];
   reduce: boolean;
   onPitClick: (pit: number) => void;
-  onArrow: (side: 'left' | 'right') => void;
+  onArrow: (side: 'left' | 'right', pointerType: string) => void;
   onArrowHover: (side: 'left' | 'right' | null) => void;
 }
 
 export function OaqBoard({ state, selectable, selected, preview, hand, focusPit, exitModes, floaters, reduce, onPitClick, onArrow, onArrowHover }: Props) {
   const boardImg = img('oaq/board');
+  const pointerType = useRef('mouse');
   const previewIndex = new Map(preview.map((p, i) => [p, i + 1]));
   const lastPreview = preview[preview.length - 1];
 
@@ -287,7 +288,8 @@ export function OaqBoard({ state, selectable, selected, preview, hand, focusPit,
                 transition={{ type: 'spring', stiffness: 500, damping: 20 }}
                 onMouseEnter={() => onArrowHover(side)}
                 onMouseLeave={() => onArrowHover(null)}
-                onClick={() => onArrow(side)}
+                onPointerDown={(e) => (pointerType.current = e.pointerType)}
+                onClick={() => onArrow(side, pointerType.current)}
                 title={side === 'left' ? 'Rải sang trái' : 'Rải sang phải'}
                 style={{ position: 'absolute', left: c.x + (side === 'left' ? -DAN_W / 2 - 46 : DAN_W / 2 - 46), top: c.y - 46, width: 92, height: 92, zIndex: 12 }}
               >

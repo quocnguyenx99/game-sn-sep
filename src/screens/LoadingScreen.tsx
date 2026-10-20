@@ -6,6 +6,7 @@ import { MenuBackground } from '../backgrounds/Backgrounds';
 import { useGame } from '../store/useGame';
 import { Button } from '../ui/Button';
 import { Mascot } from '../ui/Mascot';
+import { enterLandscapeFullscreen } from '../ui/Stage';
 
 /** Nạp trước ảnh + font để vào game không bị giật, rồi chờ người dùng bấm để mở khóa âm thanh. */
 export function LoadingScreen() {
@@ -49,6 +50,7 @@ export function LoadingScreen() {
                 style={{ fontSize: 46, padding: '20px 70px 26px' }}
                 onClick={() => {
                   audio.unlock();
+                  void enterLandscapeFullscreen();
                   go('menu');
                 }}
               >

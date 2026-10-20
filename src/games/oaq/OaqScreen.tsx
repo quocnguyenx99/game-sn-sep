@@ -11,6 +11,7 @@ import { ResultOverlay } from '../../ui/ResultOverlay';
 import { SpeedSlider, speedLabel } from '../../ui/SettingsModal';
 import { SpeechBubble } from '../../ui/SpeechBubble';
 import { TopBar } from '../../ui/TopBar';
+import { isTouchDevice } from '../../ui/Stage';
 import { BOARD_W, OaqBoard, dirFromSide, type ExitMode, type Floater } from './OaqBoard';
 import { OaqRules } from './OaqRules';
 import { Stone } from './Stone';
@@ -122,6 +123,8 @@ export function OaqScreen() {
   const [phase, setPhase] = useState<Phase>('select');
   const [selected, setSelected] = useState<number | null>(null);
   const [hoverSide, setHoverSide] = useState<'left' | 'right' | null>(null);
+  // cảm ứng: chạm mũi tên lần 1 để xem đường rải, chạm lần 2 để rải
+  const [armedSide, setArmedSide] = useState<'left' | 'right' | null>(null);
   const [hand, setHand] = useState<{ pit: number; count: number } | null>(null);
   const [focusPit, setFocusPit] = useState<number | null>(null);
   const [exitModes, setExitModes] = useState<Record<number, ExitMode>>({});
@@ -367,7 +370,15 @@ export function OaqScreen() {
       return;
     }
     setSelected(pit);
-    say(display.turn, <>Rải sang <b>trái</b> hay <b>phải</b>? Rê chuột vào mũi tên để xem đường đi của {display.pits[pit].dan} viên sỏi.</>);
+    setArmedSide(null);
+    say(
+      display.turn,
+      isTouchDevice() ? (
+        <>Rải sang <b>trái</b> hay <b>phải</b>? Chạm mũi tên để xem đường đi của {display.pits[pit].dan} viên sỏi, chạm lần nữa để rải.</>
+      ) : (
+        <>Rải sang <b>trái</b> hay <b>phải</b>? Rê chuột vào mũi tên để xem đường đi của {display.pits[pit].dan} viên sỏi.</>
+      ),
+    );
   };
 
   const poseOf = (p: Player): Pose => {
@@ -425,8 +436,19 @@ export function OaqScreen() {
           floaters={floaters}
           reduce={settings.reduceMotion}
           onPitClick={onPitClick}
-          onArrow={(side) => selected !== null && startMove(selected, side)}
-          onArrowHover={setHoverSide}
+          onArrow={(side, pointerType) => {
+            if (selected === null) return;
+            if (pointerType !== 'mouse' && armedSide !== side) {
+              audio.sfx('click');
+              setArmedSide(side);
+              setHoverSide(side);
+              say(display.turn, <>Đường rải đã hiện số thứ tự. <b>Chạm lần nữa</b> để rải sang {side === 'left' ? 'trái' : 'phải'}.</>);
+              return;
+            }
+            setArmedSide(null);
+            startMove(selected, side);
+          }}
+          onArrowHover={(side) => (side !== null || armedSide === null) && setHoverSide(side)}
         />
       </motion.div>
 
