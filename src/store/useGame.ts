@@ -43,7 +43,7 @@ export const DEFAULT_SETTINGS: Settings = {
   musicVolume: 0.5,
   sfxVolume: 0.8,
   muted: false,
-  track: 'chiptune',
+  track: 'birthday',
   theme: 'day',
   reduceMotion: false,
   sowDelay: 450,
@@ -127,8 +127,14 @@ export const useGame = create<GameStore>()(
     }),
     {
       name: 'hanh-trinh-tuoi-tho',
-      version: 1,
+      version: 2,
       partialize: (s) => ({ settings: s.settings, players: s.players, leaderboard: s.leaderboard }),
+      // v1 → v2: nhạc nền mặc định đổi sang Happy Birthday 8-bit; máy đã lưu cài đặt cũ cũng chuyển theo một lần
+      migrate: (persisted, version) => {
+        const p = (persisted ?? {}) as Partial<GameStore>;
+        if (version < 2 && p.settings) p.settings = { ...p.settings, track: 'birthday' };
+        return p as GameStore;
+      },
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<GameStore>;
         return { ...current, ...p, settings: { ...DEFAULT_SETTINGS, ...(p.settings ?? {}) } };
