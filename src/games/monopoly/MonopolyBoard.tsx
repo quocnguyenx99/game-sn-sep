@@ -4,51 +4,99 @@ import { calculateRent } from './engine';
 import { PLAYER_COLORS } from './MonopolyModals';
 import type { MonopolyPlayer, TileState } from './types';
 
-// Tọa độ [col, row] trong lưới 9x9 (0..8)
+/* ─── Tọa độ [col, row] trong lưới 9×9 ─── */
 export const TILE_COORDS: Record<number, [number, number]> = {
-  // Cạnh dưới (Đi từ Trái sang Phải)
-  0: [0, 8],
-  1: [1, 8],
-  2: [2, 8],
-  3: [3, 8],
-  4: [4, 8],
-  5: [5, 8],
-  6: [6, 8],
-  7: [7, 8],
-  // Góc phải dưới
+  0: [0, 8], 1: [1, 8], 2: [2, 8], 3: [3, 8], 4: [4, 8], 5: [5, 8], 6: [6, 8], 7: [7, 8],
   8: [8, 8],
-  // Cạnh phải (Đi từ Dưới lên Trên)
-  9: [8, 7],
-  10: [8, 6],
-  11: [8, 5],
-  12: [8, 4],
-  13: [8, 3],
-  14: [8, 2],
-  15: [8, 1],
-  // Góc phải trên
+  9: [8, 7], 10: [8, 6], 11: [8, 5], 12: [8, 4], 13: [8, 3], 14: [8, 2], 15: [8, 1],
   16: [8, 0],
-  // Cạnh trên (Đi từ Phải sang Trái)
-  17: [7, 0],
-  18: [6, 0],
-  19: [5, 0],
-  20: [4, 0],
-  21: [3, 0],
-  22: [2, 0],
-  23: [1, 0],
-  // Góc trái trên
+  17: [7, 0], 18: [6, 0], 19: [5, 0], 20: [4, 0], 21: [3, 0], 22: [2, 0], 23: [1, 0],
   24: [0, 0],
-  // Cạnh trái (Đi từ Trên xuống Dưới)
-  25: [0, 1],
-  26: [0, 2],
-  27: [0, 3],
-  28: [0, 4],
-  29: [0, 5],
-  30: [0, 6],
-  31: [0, 7],
+  25: [0, 1], 26: [0, 2], 27: [0, 3], 28: [0, 4], 29: [0, 5], 30: [0, 6], 31: [0, 7],
 };
 
 const CORNER_IDS = new Set([0, 8, 16, 24]);
 
+/* ─── 3D depth colours for tile sides ─── */
+const DEPTH = 18; // px thickness
+
+/** Hàng nhà nhỏ 3D trên ô đất (VNG-style) */
+function TileBuildings({ level, ownerColor }: { level: number; ownerColor: string }) {
+  if (level === 0) return null;
+  if (level === 4) {
+    return (
+      <div style={{
+        position: 'absolute', top: -18, left: '50%', transform: 'translateX(-50%) rotateX(-50deg) rotateZ(-45deg)',
+        fontSize: 22, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))', zIndex: 20,
+        animation: 'landmarkPulse 2s ease-in-out infinite',
+      }}>
+        🏰
+      </div>
+    );
+  }
+  return (
+    <div style={{
+      position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%) rotateX(-50deg) rotateZ(-45deg)',
+      display: 'flex', gap: 2, zIndex: 15,
+    }}>
+      {Array.from({ length: level }).map((_, i) => (
+        <div key={i} style={{
+          width: 10, height: 14, borderRadius: '2px 2px 0 0',
+          background: `linear-gradient(180deg, ${ownerColor}, ${ownerColor}dd)`,
+          border: '1px solid rgba(0,0,0,0.3)',
+          boxShadow: `0 2px 4px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3)`,
+          position: 'relative',
+        }}>
+          {/* Mái nhà tam giác */}
+          <div style={{
+            position: 'absolute', top: -6, left: -1, width: 0, height: 0,
+            borderLeft: '6px solid transparent', borderRight: '6px solid transparent',
+            borderBottom: `6px solid ${ownerColor}`,
+            filter: 'brightness(1.2)',
+          }} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Token người chơi – quân cờ tròn đứng trên mặt ô */
+function PlayerTokens({ players, tileId }: { players: MonopolyPlayer[]; tileId: number }) {
+  const standing = players.filter(p => !p.isBankrupt && p.position === tileId);
+  if (standing.length === 0) return null;
+  return (
+    <div style={{
+      position: 'absolute', bottom: 4, left: '50%',
+      transform: 'translateX(-50%) rotateX(-50deg) rotateZ(-45deg)',
+      display: 'flex', gap: 3, zIndex: 30,
+    }}>
+      {standing.map(p => {
+        const col = PLAYER_COLORS[p.color];
+        return (
+          <motion.div
+            key={p.id}
+            layoutId={`pawn_${p.id}`}
+            transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+            style={{
+              width: 22, height: 22, borderRadius: '50%',
+              background: `radial-gradient(circle at 40% 35%, ${col.border}ee, ${col.border}88)`,
+              border: '2.5px solid #fff',
+              boxShadow: `0 3px 8px rgba(0,0,0,0.5), 0 0 12px ${col.border}66`,
+              display: 'grid', placeItems: 'center',
+              fontSize: 10, fontWeight: 900, color: '#fff',
+            }}
+          >
+            {p.id + 1}
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════
+   MonopolyBoard  –  Isometric 3D Diamond (phong cách VNG)
+   ════════════════════════════════════════════════════════ */
 interface Props {
   tileStates: TileState[];
   players: MonopolyPlayer[];
@@ -58,257 +106,205 @@ interface Props {
   centerContent?: React.ReactNode;
 }
 
-export function MonopolyBoard({
-  tileStates,
-  players,
-  highlightedTile,
-  onTileClick,
-  centerContent,
-}: Props) {
+export function MonopolyBoard({ tileStates, players, highlightedTile, onTileClick, centerContent }: Props) {
   return (
-    <div
-      style={{
+    <div style={{
+      /* Outer wrapper – holds perspective for the 3-D tilt */
+      width: 920, height: 920,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      perspective: '1200px',
+      perspectiveOrigin: '50% 30%',
+    }}>
+      {/* ── 3-D tilted container ── */}
+      <div style={{
+        width: 780, height: 780,
+        transform: 'rotateX(52deg) rotateZ(45deg)',
+        transformStyle: 'preserve-3d',
         position: 'relative',
-        width: 864,
-        height: 864,
-        background: 'linear-gradient(135deg, #1E293B, #0F172A)',
-        borderRadius: 36,
-        padding: 12,
-        boxShadow: '0 24px 60px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.1)',
         display: 'grid',
-        gridTemplateColumns: '106px repeat(7, 90px) 106px',
-        gridTemplateRows: '106px repeat(7, 90px) 106px',
-        gap: 6,
-        userSelect: 'none',
-      }}
-    >
-      {/* 32 Ô Bàn Cờ */}
-      {TILES.map((tile) => {
-        const [col, row] = TILE_COORDS[tile.id];
-        const isCorner = CORNER_IDS.has(tile.id);
-        const state = tileStates[tile.id];
-        const isOwner = state.ownerId !== null;
-        const owner = isOwner ? players[state.ownerId!] : null;
-        const ownerColor = owner ? PLAYER_COLORS[owner.color] : null;
-        const colorGroup = tile.color ? COLOR_GROUPS[tile.color] : null;
-        const isHighlighted = highlightedTile === tile.id;
-        const standingPlayers = players.filter((p) => !p.isBankrupt && p.position === tile.id);
+        gridTemplateColumns: '100px repeat(7, 82px) 100px',
+        gridTemplateRows: '100px repeat(7, 82px) 100px',
+        gap: 4,
+      }}>
+        {/* ── 32 Tiles ── */}
+        {TILES.map(tile => {
+          const [col, row] = TILE_COORDS[tile.id];
+          const isCorner = CORNER_IDS.has(tile.id);
+          const st = tileStates[tile.id];
+          const owned = st.ownerId !== null;
+          const owner = owned ? players[st.ownerId!] : null;
+          const ownerCol = owner ? PLAYER_COLORS[owner.color] : null;
+          const colorGrp = tile.color ? COLOR_GROUPS[tile.color] : null;
+          const isHL = highlightedTile === tile.id;
+          const rent = calculateRent(tile.id, tileStates);
 
-        const rent = calculateRent(tile.id, tileStates);
+          /* Side colour = darken the top colour */
+          const topBg = isCorner
+            ? 'linear-gradient(135deg, #2D3748, #1A202C)'
+            : '#F7FAFC';
+          const sideBg = isCorner ? '#1A202C' : '#CBD5E0';
 
-        return (
-          <motion.div
-            key={tile.id}
-            onClick={() => onTileClick?.(tile.id)}
-            whileHover={onTileClick ? { scale: 1.04, zIndex: 10 } : {}}
-            style={{
-              gridColumn: col + 1,
-              gridRow: row + 1,
-              borderRadius: isCorner ? 22 : 14,
-              background: isHighlighted
-                ? 'linear-gradient(135deg, #FEF08A, #FDE047)'
-                : isCorner
-                  ? 'linear-gradient(135deg, #334155, #1E293B)'
-                  : '#FFFFFF',
-              boxShadow: isHighlighted ? '0 0 20px #EAB308' : '0 4px 10px rgba(0,0,0,0.15)',
-              border: isOwner
-                ? `3px solid ${ownerColor?.border}`
-                : isCorner
-                  ? '2px solid #475569'
-                  : '2px solid #E2E8F0',
-              display: 'flex',
-              flexDirection: 'column',
-              position: 'relative',
-              overflow: 'hidden',
-              cursor: onTileClick ? 'pointer' : 'default',
-            }}
-          >
-            {/* Header màu nhóm bất động sản */}
-            {colorGroup && !isCorner && (
-              <div
-                style={{
-                  height: 14,
-                  background: colorGroup.hex,
-                  width: '100%',
-                }}
-              />
-            )}
-
-            {/* Nội dung ô */}
+          return (
             <div
+              key={tile.id}
+              onClick={() => onTileClick?.(tile.id)}
               style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '2px 4px',
-                textAlign: 'center',
-                color: isCorner ? '#F8FAFC' : '#1E293B',
+                gridColumn: col + 1, gridRow: row + 1,
+                position: 'relative',
+                transformStyle: 'preserve-3d',
+                cursor: onTileClick ? 'pointer' : 'default',
+                /* subtle hover lift */
+                transition: 'transform 0.15s',
               }}
+              onMouseEnter={e => { if (onTileClick) (e.currentTarget.style.transform = `translateZ(4px)`); }}
+              onMouseLeave={e => { if (onTileClick) (e.currentTarget.style.transform = ''); }}
             >
-              {/* Icon */}
-              <div style={{ fontSize: isCorner ? 26 : 20, lineHeight: 1 }}>{tile.icon}</div>
+              {/* ══ TOP FACE ══ */}
+              <div style={{
+                width: '100%', height: '100%',
+                borderRadius: isCorner ? 14 : 8,
+                background: isHL
+                  ? 'linear-gradient(135deg, #FDE68A, #F59E0B)'
+                  : topBg,
+                border: owned
+                  ? `3px solid ${ownerCol?.border}`
+                  : isCorner ? '2px solid #4A5568' : '2px solid #E2E8F0',
+                boxShadow: isHL
+                  ? '0 0 20px #F59E0B88'
+                  : owned
+                    ? `0 0 10px ${ownerCol?.border}44`
+                    : '0 2px 4px rgba(0,0,0,0.1)',
+                display: 'flex', flexDirection: 'column',
+                overflow: 'hidden',
+                position: 'relative',
+                zIndex: 2,
+              }}>
+                {/* Colour bar */}
+                {colorGrp && !isCorner && (
+                  <div style={{ height: 12, background: colorGrp.hex, width: '100%', flexShrink: 0 }} />
+                )}
 
-              {/* Tên ngắn */}
-              <div
-                style={{
-                  fontSize: isCorner ? 13 : 11,
-                  fontWeight: 800,
-                  marginTop: 2,
-                  lineHeight: 1.15,
-                  maxWidth: 82,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {tile.shortName}
-              </div>
-
-              {/* Hiển thị Giá hoặc Tiền Thuê */}
-              {!isCorner && (
-                <div style={{ fontSize: 10, fontWeight: 700, marginTop: 2 }}>
-                  {isOwner ? (
-                    <span style={{ color: '#059669' }}>Thuê: {rent}K</span>
-                  ) : tile.cost ? (
-                    <span style={{ color: '#64748B' }}>{tile.cost}K</span>
-                  ) : tile.taxAmount ? (
-                    <span style={{ color: '#EF4444' }}>Thuế</span>
-                  ) : null}
+                {/* Content */}
+                <div style={{
+                  flex: 1, display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center',
+                  padding: '2px 3px', textAlign: 'center',
+                  color: isCorner ? '#E2E8F0' : '#1A202C',
+                }}>
+                  <div style={{ fontSize: isCorner ? 22 : 18, lineHeight: 1 }}>{tile.icon}</div>
+                  <div style={{
+                    fontSize: isCorner ? 11 : 9, fontWeight: 800,
+                    marginTop: 1, lineHeight: 1.1,
+                    maxWidth: '90%', whiteSpace: 'nowrap',
+                    overflow: 'hidden', textOverflow: 'ellipsis',
+                  }}>
+                    {tile.shortName}
+                  </div>
+                  {!isCorner && (
+                    <div style={{ fontSize: 8, fontWeight: 700, marginTop: 1 }}>
+                      {owned
+                        ? <span style={{ color: '#059669' }}>{rent}K</span>
+                        : tile.cost
+                          ? <span style={{ color: '#718096' }}>{tile.cost}K</span>
+                          : tile.taxAmount
+                            ? <span style={{ color: '#E53E3E' }}>Thuế</span>
+                            : null}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            {/* Cấp độ nhà / Landmark */}
-            {isOwner && state.level > 0 && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 14,
-                  left: 2,
-                  display: 'flex',
-                  gap: 1,
-                  background: 'rgba(0,0,0,0.65)',
-                  padding: '1px 3px',
-                  borderRadius: 4,
-                }}
-              >
-                {state.level === 4 ? (
-                  <span style={{ fontSize: 10 }}>🏰</span>
-                ) : (
-                  Array.from({ length: state.level }).map((_, i) => (
-                    <span key={i} style={{ fontSize: 9 }}>
-                      🏠
-                    </span>
-                  ))
+                {/* Festival flag */}
+                {st.isFestival && (
+                  <div style={{ position: 'absolute', top: 1, right: 2, fontSize: 10, zIndex: 5 }}>🚩</div>
+                )}
+
+                {/* Owner strip at bottom */}
+                {owned && (
+                  <div style={{ height: 4, background: ownerCol?.border ?? '#3182CE', width: '100%', flexShrink: 0 }} />
                 )}
               </div>
-            )}
 
-            {/* Cờ Lễ Hội nếu đang active */}
-            {state.isFestival && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 2,
-                  right: 2,
-                  fontSize: 12,
-                  filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))',
-                }}
-              >
-                🚩
-              </div>
-            )}
+              {/* ══ RIGHT SIDE FACE (3D depth) ══ */}
+              <div style={{
+                position: 'absolute',
+                width: '100%', height: DEPTH,
+                bottom: -DEPTH, left: 0,
+                background: sideBg,
+                borderRadius: '0 0 4px 4px',
+                transform: 'rotateX(-90deg)',
+                transformOrigin: 'top',
+                borderTop: owned ? `2px solid ${ownerCol?.border}88` : '1px solid rgba(0,0,0,0.1)',
+                boxShadow: 'inset 0 -4px 8px rgba(0,0,0,0.2)',
+                zIndex: 1,
+              }} />
 
-            {/* Chủ sở hữu badge */}
-            {isOwner && (
-              <div
-                style={{
-                  height: 4,
-                  background: ownerColor?.border ?? '#3B82F6',
-                  width: '100%',
-                }}
-              />
-            )}
+              {/* ══ BOTTOM SIDE FACE ══ */}
+              <div style={{
+                position: 'absolute',
+                width: DEPTH, height: '100%',
+                top: 0, right: -DEPTH,
+                background: isCorner ? '#151B28' : '#A0AEC0',
+                borderRadius: '0 4px 4px 0',
+                transform: 'rotateY(90deg)',
+                transformOrigin: 'left',
+                borderLeft: owned ? `2px solid ${ownerCol?.border}66` : '1px solid rgba(0,0,0,0.08)',
+                boxShadow: 'inset -4px 0 8px rgba(0,0,0,0.2)',
+                zIndex: 1,
+              }} />
 
-            {/* Hiển thị Avatar Người chơi đang đứng tại ô này */}
-            {standingPlayers.length > 0 && (
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: 2,
-                  left: 0,
-                  right: 0,
-                  display: 'flex',
-                  justifyContent: 'center',
-                  gap: 2,
-                  pointerEvents: 'none',
-                }}
-              >
-                {standingPlayers.map((p) => {
-                  const pCol = PLAYER_COLORS[p.color];
-                  return (
-                    <motion.div
-                      key={p.id}
-                      layoutId={`player_token_${p.id}`}
-                      transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-                      style={{
-                        width: 20,
-                        height: 20,
-                        borderRadius: 999,
-                        background: pCol.border,
-                        border: '2px solid #fff',
-                        boxShadow: '0 2px 5px rgba(0,0,0,0.3)',
-                        display: 'grid',
-                        placeItems: 'center',
-                        fontSize: 10,
-                        fontWeight: 900,
-                        color: pCol.text,
-                      }}
-                    >
-                      {p.id + 1}
-                    </motion.div>
-                  );
-                })}
-              </div>
-            )}
-          </motion.div>
-        );
-      })}
+              {/* ══ BUILDINGS on top ══ */}
+              <TileBuildings level={st.level} ownerColor={ownerCol?.border ?? '#3182CE'} />
 
-      {/* VÙNG TRUNG TÂM BÀN CỜ */}
-      <div
-        style={{
-          gridColumn: '2 / 9',
-          gridRow: '2 / 9',
-          background: 'radial-gradient(circle at center, #1E293B, #0F172A)',
-          borderRadius: 24,
-          border: '2px solid #334155',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-          padding: 24,
-          overflow: 'hidden',
-        }}
-      >
-        {/* Background watermark logo */}
-        <div
-          style={{
-            position: 'absolute',
-            fontSize: 160,
-            opacity: 0.04,
-            fontWeight: 900,
-            userSelect: 'none',
-            pointerEvents: 'none',
-          }}
-        >
-          NKC
+              {/* ══ PLAYER TOKENS ══ */}
+              <PlayerTokens players={players} tileId={tile.id} />
+            </div>
+          );
+        })}
+
+        {/* ═══ CENTER AREA ═══ */}
+        <div style={{
+          gridColumn: '2 / 9', gridRow: '2 / 9',
+          borderRadius: 16,
+          background: 'linear-gradient(145deg, #1A202C, #0F1623)',
+          border: '2px solid #2D3748',
+          boxShadow: 'inset 0 0 40px rgba(0,0,0,0.5)',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          position: 'relative', overflow: 'hidden',
+          /* Un-tilt text so it's readable */
+          transformStyle: 'preserve-3d',
+        }}>
+          {/* Watermark */}
+          <div style={{
+            position: 'absolute', fontSize: 80, opacity: 0.03,
+            fontWeight: 900, color: '#fff',
+            pointerEvents: 'none', userSelect: 'none',
+          }}>
+            NKC
+          </div>
+
+          {/* Title banner */}
+          <div style={{
+            background: 'linear-gradient(90deg, #B7791F, #D69E2E, #B7791F)',
+            padding: '4px 28px', borderRadius: 999,
+            color: '#fff', fontWeight: 900, fontSize: 14,
+            letterSpacing: 2, textTransform: 'uppercase',
+            boxShadow: '0 2px 12px rgba(214,158,46,0.4)',
+            marginBottom: 14,
+          }}>
+            ⭐ CỜ TỶ PHÚ NKC ⭐
+          </div>
+
+          {/* Content from parent (dice, round info) rendered un-tilted */}
+          <div style={{
+            transform: 'rotateZ(-45deg) rotateX(-52deg)',
+            transformStyle: 'preserve-3d',
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', gap: 10,
+          }}>
+            {centerContent}
+          </div>
         </div>
-
-        {centerContent}
       </div>
     </div>
   );
