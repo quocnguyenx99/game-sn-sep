@@ -2,7 +2,7 @@ import { audioFile } from '../assets/registry';
 import { BIRTHDAY, BIRTHDAY_JINGLE, CHIPTUNE, noteFreq, songBeats, type Song, type Voice } from './songs';
 import type { Track } from '../store/useGame';
 
-export type SfxName = 'click' | 'place' | 'pick' | 'drop' | 'capture' | 'win' | 'error' | 'undo' | 'reseed' | 'hover';
+export type SfxName = 'click' | 'place' | 'pick' | 'drop' | 'capture' | 'win' | 'error' | 'undo' | 'reseed' | 'hover' | 'dice' | 'cash' | 'build' | 'landmark' | 'siren' | 'festival' | 'bankrupt';
 
 const SONGS: Record<Exclude<Track, 'off'>, Song> = { chiptune: CHIPTUNE, birthday: BIRTHDAY };
 const LOOKAHEAD = 0.15; // giây lên lịch trước

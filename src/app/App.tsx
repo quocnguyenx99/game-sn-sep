@@ -2,6 +2,7 @@ import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import { useEffect } from 'react';
 import { audio } from '../audio/engine';
 import { CaroScreen } from '../games/caro/CaroScreen';
+import { MonopolyScreen } from '../games/monopoly/MonopolyScreen';
 import { OaqScreen } from '../games/oaq/OaqScreen';
 import { LeaderboardScreen } from '../screens/LeaderboardScreen';
 import { LoadingScreen } from '../screens/LoadingScreen';
@@ -17,6 +18,7 @@ const SCREENS = {
   setup: SetupScreen,
   caro: CaroScreen,
   oaq: OaqScreen,
+  monopoly: MonopolyScreen,
   leaderboard: LeaderboardScreen,
 };
 

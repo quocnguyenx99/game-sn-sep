@@ -14,22 +14,23 @@ export function LeaderboardScreen() {
     <div className="screen">
       <MenuBackground />
       <TopBar onBack={() => go('menu')} title="Bảng xếp hạng" />
-      <div className="panel" style={{ position: 'absolute', top: 150, left: 260, right: 260, bottom: 60, padding: '30px 44px', overflow: 'auto' }}>
+      <div className="panel" style={{ position: 'absolute', top: 150, left: 200, right: 200, bottom: 60, padding: '30px 44px', overflow: 'auto' }}>
         {rows.length === 0 ? (
           <div style={{ height: '100%', display: 'grid', placeItems: 'center', fontSize: 40, fontWeight: 800, color: 'var(--ink-soft)' }}>
             Chưa có ai thi đấu. Vào chơi ngay nào!
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 12px', fontSize: 32, fontWeight: 700 }}>
+          <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 12px', fontSize: 30, fontWeight: 700 }}>
             <thead>
-              <tr style={{ color: 'var(--ink-soft)', fontSize: 24, textAlign: 'center' }}>
+              <tr style={{ color: 'var(--ink-soft)', fontSize: 22, textAlign: 'center' }}>
                 <th style={{ width: 90 }}>Hạng</th>
                 <th style={{ textAlign: 'left' }}>Tên</th>
                 <th>Thắng</th>
                 <th>Hòa</th>
                 <th>Thua</th>
-                <th>Thắng caro</th>
-                <th>Thắng ô ăn quan</th>
+                <th>Thắng Caro</th>
+                <th>Thắng Ô Ăn Quan</th>
+                <th>Thắng Cờ Tỷ Phú</th>
               </tr>
             </thead>
             <tbody>
@@ -46,8 +47,8 @@ export function LeaderboardScreen() {
                       style={{
                         display: 'inline-grid',
                         placeItems: 'center',
-                        width: 56,
-                        height: 56,
+                        width: 52,
+                        height: 52,
                         borderRadius: '50%',
                         background: MEDAL[i] ?? '#E8E0F7',
                         border: '4px solid #fff',
@@ -58,11 +59,12 @@ export function LeaderboardScreen() {
                     </span>
                   </td>
                   <td style={{ textAlign: 'left', fontWeight: 800 }}>{r.name}</td>
-                  <td style={{ color: 'var(--blue)', fontWeight: 800, fontSize: 40 }}>{r.wins}</td>
+                  <td style={{ color: 'var(--blue)', fontWeight: 800, fontSize: 36 }}>{r.wins}</td>
                   <td>{r.draws}</td>
                   <td>{r.losses}</td>
                   <td>{r.caro}</td>
-                  <td style={{ borderRadius: '0 20px 20px 0' }}>{r.oaq}</td>
+                  <td>{r.oaq}</td>
+                  <td style={{ borderRadius: '0 20px 20px 0', color: '#B45309' }}>{r.monopoly ?? 0}</td>
                 </motion.tr>
               ))}
             </tbody>

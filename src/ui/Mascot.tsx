@@ -49,6 +49,8 @@ export function Mascot({ color, pose, size = 260, className }: Props) {
 const PALETTE = {
   gold: { jacket: '#FFD43B', jacketDeep: '#F0B400', trim: '#1E4FD8', pants: '#1E4FD8', pantsDeep: '#12318F', goggle: '#3FA9FF', goggleDeep: '#1E4FD8', letter: '#1E4FD8' },
   orange: { jacket: '#FF8A3D', jacketDeep: '#E0601A', trim: '#E5402F', pants: '#C9302A', pantsDeep: '#8E1D19', goggle: '#FF7B7B', goggleDeep: '#E5402F', letter: '#FFF3D6' },
+  cyan: { jacket: '#06B6D4', jacketDeep: '#0891B2', trim: '#0284C7', pants: '#0369A1', pantsDeep: '#075985', goggle: '#67E8F9', goggleDeep: '#0284C7', letter: '#E0F2FE' },
+  pink: { jacket: '#F472B6', jacketDeep: '#DB2777', trim: '#9D174D', pants: '#831843', pantsDeep: '#500724', goggle: '#F9A8D4', goggleDeep: '#DB2777', letter: '#FDF2F8' },
 };
 const FUR = '#FFC21F';
 const FUR_DEEP = '#F29A00';
